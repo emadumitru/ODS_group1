@@ -2,7 +2,6 @@ import pandas as pd
 import networkx as nx
 import matplotlib.pyplot as plt
 
-test_path = 'data/RI/'
 
 def load_graph(path, county):
 
@@ -38,6 +37,8 @@ def load_graph(path, county):
 
 
 if __name__ == '__main__':
+    test_path = 'data/RI/'
+
     G, full_graph = load_graph(test_path)
             
     print(nx.info(G))
