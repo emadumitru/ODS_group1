@@ -1,4 +1,5 @@
 from graps import run_graps
+import time
 
 path_data = 'data/'
 counties = ['RI', 'WA', 'AR']
@@ -19,7 +20,7 @@ target_distr = [2, 10, 4]
 
 
 types_districts = ['tracts']
-# types_districts = ['counties']
+types_districts = ['counties']
 path = path_data + 'plots/'
 paths = {}
 for td in types_districts:
@@ -30,5 +31,7 @@ for td in types_districts:
         paths[name] = (graph_path, map_path, target_distr, county, td)
 
 for name, (graph_path, map_path, target_distr, county, td) in paths.items():
+    start_time = time.time()
     run_graps(graph_path, map_path, name, target_distr, county, path, td)
+    print(f'Elapsed time for {name}: {round(time.time() - start_time, 2)}')
         

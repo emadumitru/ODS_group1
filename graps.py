@@ -285,6 +285,9 @@ def create_initial_partition(G, num_partitions):
     for i in range(1, min(num_partitions, len(sorted_nodes_by_population))):  # Start from 1 since partition 0 is the default
         partitioning[sorted_nodes_by_population[i - 1][0]] = i
 
+    # for i in range(1, min(num_partitions, len(sorted_nodes_by_degree))):  # Start from 1 since partition 0 is the default
+    #     partitioning[sorted_nodes_by_degree[i - 1]] = i
+
     return partitioning
 
 def graph_partitioning(G, num_partitions, seed=70):
