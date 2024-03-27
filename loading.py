@@ -4,10 +4,10 @@ import matplotlib.pyplot as plt
 
 test_path = 'data/RI/'
 
-def load_graph(path):
+def load_graph(path, county):
 
-    features_df = pd.read_csv(path + 'RI_features.csv', header=None).rename(columns={0: 'GEOID', 1: 'population', 2: 'neighboors'})
-    distances_df = pd.read_csv(path + 'RI_distances.csv').drop(columns=['Node_ID'])
+    features_df = pd.read_csv(path + county + '_features.csv', header=None).rename(columns={0: 'GEOID', 1: 'population', 2: 'neighboors'})
+    distances_df = pd.read_csv(path + county + '_distances.csv').drop(columns=['Node_ID'])
 
     distances_df.columns = distances_df.index
 
@@ -31,13 +31,14 @@ def load_graph(path):
             if str(geoid_dict.get(neighbor)) in neighbor_geoids:
                 G.add_edge(node, neighbor, **attributes)
     
-    return G
+    return G, full_graph
 
 
 if __name__ == '__main__':
-    G = load_graph(test_path)
+    G, full_graph = load_graph(test_path)
             
     print(nx.info(G))
+    print(nx.info(full_graph))
     print(list(G.nodes(data=True))[:3])
     print(list(G.edges(data=True))[:3])
 
