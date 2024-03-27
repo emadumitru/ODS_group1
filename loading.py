@@ -6,10 +6,13 @@ test_path = 'data/RI/'
 
 def load_graph(path, county):
 
-    features_df = pd.read_csv(path + county + '_features.csv', header=None).rename(columns={0: 'GEOID', 1: 'population', 2: 'neighboors'})
+    features_df = pd.read_csv(path + county + '_features.csv', header=None, dtype={0: str}).rename(columns={0: 'GEOID', 1: 'population', 2: 'neighboors'})
     distances_df = pd.read_csv(path + county + '_distances.csv').drop(columns=['Node_ID'])
 
     distances_df.columns = distances_df.index
+
+    mean_populations = round(features_df['population'].mean())
+    features_df['population'] = features_df['population'].replace(0, mean_populations)
 
 
     pop_dict = features_df['population'].to_dict()

@@ -9,11 +9,21 @@ target_distr = [2, 10, 4]
 # counties_name = ['Arkansas']
 # target_distr = [4]
 
-types_districts = ['counties', 'tracts']
+# counties = ['RI']
+# counties_name = ['Rhode Island']
+# target_distr = [2]
+
+# counties = ['WA']
+# counties_name = ['Washington']
+# target_distr = [10]
+
+
+types_districts = ['tracts']
+# types_districts = ['counties']
 path = path_data + 'plots/'
 paths = {}
-for county, county_name, target_distr in zip(counties, counties_name, target_distr):
-    for td in types_districts:
+for td in types_districts:
+    for county, county_name, target_distr in zip(counties, counties_name, target_distr):
         graph_path = path_data + county + '/' + td + '/'
         map_path = path_data + county + '/' + td + '/' + county + '_' + td + '.shp'
         name = county_name + ' ' + td

@@ -1,6 +1,7 @@
 import pandas as pd
 import networkx as nx
 import numpy as np
+from collections import deque
 from visuals import *
 from loading import load_graph
 
@@ -67,29 +68,27 @@ def calculate_rmse_and_top_district(district_populations, target_population):
     
     # Calculate mean RMSE
     mean_rmse = np.sqrt(np.mean(squared_diffs))
+    mean_mse = np.mean(squared_diffs)
+
     
     # Identify the district with the highest population
     top_district = max(district_populations, key=district_populations.get)
     
-    return mean_rmse, top_district
+    return mean_mse, top_district
 
-def check_subgraphs_connectivity(district_subgraphs):
+def check_subgraphs_connectivity(subgraphs):
     """
-    Checks if all nodes in each subgraph are connected using only paths within the subgraph.
+    Checks if all nodes in each provided subgraph are connected.
 
     Parameters:
-    - district_subgraphs: A dictionary with district identifiers as keys and the corresponding
-      NetworkX subgraphs as values.
+    - subgraphs: A dictionary of subgraphs to check for connectivity.
 
     Returns:
-    - A boolean indicating whether all subgraphs are connected (True) or if there's at least
-      one subgraph that is not connected (False).
+    - True if all subgraphs are connected; False otherwise.
     """
-    for district, subgraph in district_subgraphs.items():
+    for subgraph in subgraphs.values():
         if not nx.is_connected(subgraph):
-            # If the subgraph is not connected, return False
             return False
-    # If all subgraphs are connected, return True
     return True
 
 def calculate_total_distance(G, nodes):
@@ -98,8 +97,7 @@ def calculate_total_distance(G, nodes):
     as the sum of all shortest path lengths between pairs of nodes.
     """
     subgraph = G.subgraph(nodes)
-    total_distance = sum(nx.single_source_shortest_path_length(subgraph, node).values() for node in subgraph.nodes())
-    # Since each path is counted twice (once from each node), divide by 2
+    total_distance = sum(sum(list(nx.single_source_shortest_path_length(subgraph, node).values())) for node in subgraph.nodes())
     return total_distance / 2
 
 def calculate_distance_impact(G, partitioning, node, current_district, new_district):
@@ -130,110 +128,212 @@ def calculate_distance_impact(G, partitioning, node, current_district, new_distr
     # The impact is the difference in total distance
     return after_move_distance - before_move_distance
 
-def heuristic_node_selection(G, partitioning, district_largest_population, nonvalid_partitions):
+# def heuristic_node_selection(G, partitioning, district_largest_population, nonvalid_partitions, previous_states):
+#     """
+#     Selects a node from the district with the largest total population to move to another district,
+#     ensuring the move maintains connectivity within districts.
+
+#     Parameters:
+#     - G: A NetworkX graph.
+#     - partitioning: A dictionary mapping nodes to their current district.
+#     - district_largest_population: The district with the largest total population.
+#     - nonvalid_partitions: A list to keep track of non-valid partitions for optimization.
+
+#     Returns:
+#     - The node to move and the district to move it to, ensuring connectivity.
+#     - Updated list of non-valid partitions.
+#     """
+#     best_move = (None, None)  # Initialize with no move
+#     best_improvement = np.inf  # Looking for improvements, lower values are better
+#     best_distance_impact = np.inf  # Initialize distance impact
+#     nr_partitions = len(set(partitioning.values()))
+
+#     moves = []
+#     impacts = []
+#     new_rmses = []
+
+#     nodes_to_itterate = [n for n, d in partitioning.items() for district in district_largest_population if d == district]
+#     nodes_to_itterate = sorted(nodes_to_itterate, key=lambda x: G.nodes[x]['population'], reverse=True)
+
+#     # Iterate through each node in the largest district
+#     for node in nodes_to_itterate:
+#         for potential_district in set(partitioning.values()):
+#             # Avoid moving a node to its current district
+#             if potential_district == district_largest_population:
+#                 continue
+            
+#             # Simulate the move
+#             new_partitioning = partitioning.copy()
+#             new_partitioning[node] = potential_district
+
+#             if tuple(sorted(new_partitioning.items())) in previous_states:
+#                 continue
+    
+#             # Skip calculation if this partitioning is already known to be non-valid
+#             if tuple(sorted(new_partitioning.items())) in nonvalid_partitions:
+#                 continue
+    
+#             # Check if the new partitioning is valid (all subgraphs are connected)
+#             subgraphs = create_subgraphs_from_partitioning(G, new_partitioning)
+#             if not check_subgraphs_connectivity(subgraphs):
+#                 nonvalid_partitions.append(tuple(sorted(new_partitioning.items())))
+#                 continue  # Skip to the next potential move
+
+#             if len(subgraphs) != nr_partitions:
+#                 nonvalid_partitions.append(tuple(sorted(new_partitioning.items())))
+#                 continue
+
+#             # Calculate the new RMSE and distance impact
+#             new_rmse, _ = calculate_rmse_and_top_district(calculate_district_populations(G, new_partitioning), np.mean(list(calculate_district_populations(G, new_partitioning).values())))
+#             # distance_impact = calculate_distance_impact(G, new_partitioning, node, district_largest_population, potential_district)
+
+#             # If this move is better than the previous best, update the best move
+#             if new_rmse < best_improvement:
+#                 distance_impact = calculate_distance_impact(G, new_partitioning, node, district_largest_population, potential_district)
+#                 if distance_impact < best_distance_impact:
+#                     best_improvement = new_rmse
+#                     best_distance_impact = distance_impact
+#                     best_move = (node, potential_district)
+#     #         if new_rmse < best_improvement:
+#     #             impacts.append(distance_impact)
+#     #             moves.append((node, potential_district))
+#     #             new_rmses.append(new_rmse)
+            
+#     # if len(moves) > 0:
+#     #     # Find the best move based on RMSE improvement and distance impact
+#     #     idx = np.argmin(new_rmses)
+#     #     best_move = moves[idx]
+#     #     new_partitioning = partitioning.copy()
+#     #     new_partitioning[best_move[0]] = best_move[1]
+#     #     previous_states.append(tuple(sorted(new_partitioning.items())))
+#     if best_move[0] is not None:
+#         new_partitioning = partitioning.copy()
+#         new_partitioning[best_move[0]] = best_move[1]
+#         previous_states.append(tuple(sorted(new_partitioning.items())))
+    
+#     # Return the best move found that maintains connectivity, along with the updated non-valid partitions list
+#     return best_move, nonvalid_partitions, previous_states
+
+def heuristic_node_selection(G, partitioning, district_populations, nonvalid_partitions, previous_states):
     """
-    Selects a node from the district with the largest total population to move to another district,
-    based on improvement in RMSE, internal district distances, and partition validity.
+    Selects a node to move from one district to another to improve overall population balance,
+    while ensuring connectivity within districts is maintained.
 
     Parameters:
     - G: A NetworkX graph.
-    - partitioning: A dictionary mapping nodes to their current district.
-    - district_largest_population: The district with the largest total population.
-    - nonvalid_partitions: A list to keep track of non-valid partitions for optimization.
+    - partitioning: Current partitioning as a dictionary {node: district}.
+    - district_populations: Current populations for each district as a dictionary {district: population}.
+    - nonvalid_partitions: A list of partitionings known to be invalid, for optimization.
+    - previous_states: A list of previously encountered partition states to avoid repeats.
 
     Returns:
-    - The node to move and the district to move it to.
-    - Updated list of non-valid partitions.
+    - best_move: A tuple (node, district) representing the best node to move and its new district.
+    - nonvalid_partitions: Updated list of non-valid partitions.
+    - previous_states: Updated list of previous states.
     """
-    best_move = (None, None)  # (node to move, district to move to)
-    best_improvement = np.inf  # Track the improvement; lower RMSE is better
-    best_distance_impact = np.inf  # Placeholder for evaluating distance impact
+    best_move = (None, None)
+    populations = calculate_district_populations(G, partitioning)
+    lowest_population_variance = np.var(list(populations.values()))
 
-    # Calculate current RMSE
-    current_rmse, _ = calculate_rmse_and_top_district(calculate_district_populations(G, partitioning), np.mean(list(calculate_district_populations(G, partitioning).values())))
-    
-    for node in partitioning:
-        if partitioning[node] == district_largest_population:
-            # Simulate moving the node to each possible district
-            for potential_district in set(partitioning.values()):
-                if potential_district != district_largest_population:
-                    # Simulate the move
-                    new_partitioning = partitioning.copy()
-                    new_partitioning[node] = potential_district
-                    
-                    # Skip calculation if this partitioning is already known to be non-valid
-                    if tuple(sorted(new_partitioning.items())) in nonvalid_partitions:
-                        continue
-                    
-                    # Check if the new partitioning is valid (all subgraphs are connected)
-                    subgraphs = create_subgraphs_from_partitioning(G, new_partitioning)
-                    if not check_subgraphs_connectivity(subgraphs):
-                        nonvalid_partitions.append(tuple(sorted(new_partitioning.items())))
-                        continue  # Skip to the next potential move
-                    
-                    # Calculate new RMSE after the move
-                    new_rmse, _ = calculate_rmse_and_top_district(calculate_district_populations(G, new_partitioning), np.mean(list(calculate_district_populations(G, new_partitioning).values())))
-                    
-                    # Calculate the distance impact of the move
-                    distance_impact = calculate_distance_impact(G, new_partitioning, node, district_largest_population, potential_district)
-                    
-                    # Evaluate the move based on RMSE improvement and distance impact
-                    if new_rmse < best_improvement and distance_impact < best_distance_impact:
-                        best_improvement = new_rmse
-                        best_distance_impact = distance_impact
-                        best_move = (node, potential_district)
-    
-    return best_move, nonvalid_partitions
+    for node, current_district in partitioning.items():
+        for potential_district in set(partitioning.values()):
+            if potential_district == current_district:
+                continue
 
+            new_partitioning = partitioning.copy()
+            new_partitioning[node] = potential_district
+
+            if tuple(sorted(new_partitioning.items())) in previous_states or tuple(sorted(new_partitioning.items())) in nonvalid_partitions:
+                continue
+
+            # Simulate the population change
+            new_district_populations = populations.copy()
+            node_population = G.nodes[node]['population']
+            new_district_populations[current_district] -= node_population
+            new_district_populations[potential_district] += node_population
+
+            new_variance = np.var(list(new_district_populations.values()))
+
+            subgraphs = create_subgraphs_from_partitioning(G, new_partitioning)
+            if not check_subgraphs_connectivity(subgraphs) or len(subgraphs) != len(set(partitioning.values())):
+                nonvalid_partitions.append(tuple(sorted(new_partitioning.items())))
+                continue
+
+            if new_variance < lowest_population_variance:
+                lowest_population_variance = new_variance
+                best_move = (node, potential_district)
+
+    if best_move[0] is not None:
+        new_partitioning = partitioning.copy()
+        new_partitioning[best_move[0]] = best_move[1]
+        previous_states.append(tuple(sorted(new_partitioning.items())))
+
+    return best_move, nonvalid_partitions, previous_states
+
+def create_initial_partition(G, num_partitions):
+    # Calculate degrees of all nodes
+    degrees = dict(G.degree())
+    
+    # Sort nodes by degree in descending order
+    sorted_nodes_by_degree = sorted(degrees, key=degrees.get, reverse=True)
+    sorted_nodes_by_population = sorted(G.nodes(data=True), key=lambda x: x[1]['population'], reverse=False)
+    
+    # Initial partitioning: most connected nodes are seeded into separate partitions, others start in partition 0
+    partitioning = {node: 0 for node in G.nodes()}  # Start with all nodes in partition 0
+    
+    # Assign each of the top connected nodes to a unique partition, ensuring each partition has a highly connected node
+    for i in range(1, min(num_partitions, len(sorted_nodes_by_population))):  # Start from 1 since partition 0 is the default
+        partitioning[sorted_nodes_by_population[i - 1][0]] = i
+
+    return partitioning
 
 def graph_partitioning(G, num_partitions, seed=70):
-    """
-    Partitions a graph into a given number of districts, optimizing for population balance and connectivity,
-    ensuring that all final partitions are valid (i.e., all subgraphs are connected).
-
-    Parameters:
-    - G: A NetworkX graph, where each node has a 'population' attribute.
-    - num_partitions: The desired number of partitions (districts).
-
-    Returns:
-    - The final partitioning of nodes into districts.
-    """
-    # Initial setup
-    np.random.seed(seed)  # Set the seed for reproducibility
+    np.random.seed(seed)  # Ensure reproducibility
     nodes = sorted(G.nodes())
-    np.random.shuffle(nodes)  # Randomly shuffle nodes for initial assignment
-    initial_partitioning = {node: i % num_partitions for i, node in enumerate(nodes)}
-    nonvalid_partitions = [tuple(sorted(initial_partitioning.items()))]  # Include initial partitioning as non-valid to force re-calculation
+    
+    # Initial partitioning: distribute nodes evenly to ensure the expected number of districts
+    partitioning = create_initial_partition(G, num_partitions)
+    nonvalid_partitions = []  # Start with an empty list; it will be filled with attempted non-valid partitionings
+    previous_states = []
 
-    # Start with an empty partitioning to build upon
-    partitioning = {}
+    for _ in range(1000):
+        # Recalculate district populations as the partitioning updates
+        district_populations = calculate_district_populations(G, partitioning)
+        district_with_highest_population = [max(district_populations, key=district_populations.get)]
+        top_districts = sorted(district_populations, key=district_populations.get, reverse=True)[:(num_partitions//2)]
+        # print(f"District populations: {district_populations}")
+        # print(f"District with highest population: {district_with_highest_population}")
 
-    while True:
-        # Attempt to construct a valid partitioning from scratch or from the partial valid base
-        for node in nodes:
-            for district in range(num_partitions):
-                # Temporarily assign or reassign the node to a district
-                temp_partitioning = partitioning.copy()
-                temp_partitioning[node] = district
-                
-                # Skip if we've already determined this partitioning is non-valid
-                if tuple(sorted(temp_partitioning.items())) in nonvalid_partitions:
-                    continue
+        # Use heuristic_node_selection to find the best move that maintains connectivity
+        # best_move, nonvalid_partitions, previous_states = heuristic_node_selection(G, partitioning, district_with_highest_population, nonvalid_partitions, previous_states)
+        best_move, nonvalid_partitions, previous_states = heuristic_node_selection(G, partitioning, top_districts, nonvalid_partitions, previous_states)
+        
+        if best_move[0] is None:
+            # If no valid move was found, stop the iteration
+            break
 
-                # Check if current temp partitioning is valid
-                subgraphs = create_subgraphs_from_partitioning(G, temp_partitioning)
-                if check_subgraphs_connectivity(subgraphs):
-                    partitioning = temp_partitioning  # Accept the change
-                    break  # Break to try next node with this updated partitioning
-            else:
-                # If no valid district was found for the current node, mark the partition as non-valid
-                nonvalid_partitions.append(tuple(sorted(temp_partitioning.items())))
-                continue  # Continue trying with the next node
-                
-            # If we've successfully assigned all nodes with valid connectivity
-            if len(partitioning) == len(nodes):
-                return partitioning
-            
+        # Temporarily execute the best move to test connectivity
+        temp_partitioning = partitioning.copy()
+        temp_partitioning[best_move[0]] = best_move[1]
+
+        # Check connectivity after the move
+        subgraphs = create_subgraphs_from_partitioning(G, temp_partitioning)
+        if check_subgraphs_connectivity(subgraphs):
+            # If the move maintains connectivity, make it permanent
+            partitioning = temp_partitioning
+        else:
+            # If connectivity is lost, add to nonvalid partitions and look for another move
+            nonvalid_partitions.append(tuple(sorted(temp_partitioning.items())))
+            continue  # Proceed to the next iteration without updating the partitioning
+
+    # Final check to ensure we have the desired number of partitions
+    final_districts = set(partitioning.values())
+    if len(final_districts) != num_partitions:
+        print("Adjustments required: The final partitioning does not have the expected number of districts.")
+
+    print(partitioning)
+
+    return partitioning
 
 def partition_subgraphs_and_allocate(G, num_partitions):
     """
@@ -311,7 +411,6 @@ def comprehensive_partitioning(G, num_partitions):
                 partition_sub = graph_partitioning(subgraph, partitions)
                 part_id = [i + idx for i in range(partitions)]
                 remap_dict = dict(zip(range(partitions), part_id))
-                print(remap_dict)
                 final_partitioning.update({k: remap_dict[v] for k, v in partition_sub.items()})
                 idx += partitions
             else:
@@ -331,10 +430,12 @@ def run_graps(data_graph, data_map, name, target_part, county, path, type_dist):
     plot_graph(G, name, path, county + '_graph.png')
     partitions = comprehensive_partitioning(G, target_part)
     if partitions[1] is not None:
+        district_population_b = calculate_district_populations(G, partitions[0])
+        district_population_m = calculate_district_populations(G, partitions[1])
         plot_partitioned_graph(partitions[2], partitions[0], name + ' biggest subgraph', path, county + '_biggest_subgraph.png')
-        plot_districts_from_tracts(partitions[2], partitions[0], data_map, name + ' biggest subgraph', path, county + '_biggest_subgraph_map.png')
+        plot_districts_from_tracts(partitions[2], partitions[0], data_map, name + ' biggest subgraph', path, county + '_biggest_subgraph_map.png', district_population_b)
         plot_partitioned_graph(G, partitions[1], name + ' multipe subgraphs', path, county + '_multipe_subgraphs.png')
-        plot_districts_from_tracts(G, partitions[1], data_map, name + ' multipe subgraphs', path, county + '_multipe_subgraphs_map.png')
+        plot_districts_from_tracts(G, partitions[1], data_map, name + ' multipe subgraphs', path, county + '_multipe_subgraphs_map.png', district_population_m)
     else:
         plot_partitioned_graph(G, partitions[0], name, path, county + '_single_subgraph.png')
-        plot_districts_from_tracts(G, partitions[0], data_map, name, path, county + '_single_subgraph_map.png')
+        plot_districts_from_tracts(G, partitions[0], data_map, name, path, county + '_single_subgraph_map.png', calculate_district_populations(G, partitions[0]))
