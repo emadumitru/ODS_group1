@@ -29,4 +29,5 @@ Execute the main script from the terminal or command prompt:
 
 ### Copy code
 python main_run_all.py
+
 This will kick off the analysis process, utilizing data from the data directory and generating plots that will be saved in the plots directory.
