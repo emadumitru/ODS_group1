@@ -1,0 +1,59 @@
+Population for Alabama single subgraph: {6: 699623, 2: 705525, 3: 672076, 0: 749410, 1: 759503, 5: 757322, 4: 680820}
+Elapsed time for Alabama: 51.37
+
+Population for Alaska single subgraph: {0: 733391}
+Elapsed time for Alaska: 0.35
+
+Population for Arizona single subgraph: {6: 198373, 8: 211271, 7: 236209, 5: 425264, 0: 4420568, 4: 182679, 3: 1043433, 1: 213267, 2: 220438}
+Elapsed time for Arizona: 1.27
+
+Population for Arkansas single subgraph: {1: 749756, 3: 759978, 0: 745108, 2: 756682}
+Elapsed time for Arkansas: 17.93
+
+Population for Connecticut single subgraph: {4: 957419, 3: 1050021, 0: 899498, 1: 432800, 2: 266206}
+Elapsed time for Connecticut: 0.37
+
+Population for Idaho single subgraph: {1: 921359, 0: 917747}
+Elapsed time for Idaho: 1.11
+
+Population for Iowa single subgraph: {0: 798940, 3: 799479, 1: 792786, 2: 799164}
+Elapsed time for Iowa: 54.69
+
+Population for North Dakota single subgraph: {0: 779094}
+Elapsed time for North Dakota: 0.54
+
+Population for South Dakota single subgraph: {0: 886667}
+Elapsed time for South Dakota: 0.74
+
+Population for Colorado single subgraph: {7: 696319, 5: 700821, 0: 848553, 4: 695632, 1: 697474, 3: 688998, 6: 730395, 2: 715522}
+Elapsed time for Colorado: 183.58
+
+Population for Kansas single subgraph: {0: 1398429, 3: 1398250, 2: 71744, 1: 69457}
+Elapsed time for Kansas: 60.93
+
+Population for Virginia single subgraph: {6: 30233, 0: 346455, 4: 27393, 5: 29277, 1: 5920, 3: 25945, 7: 37347, 9: 45905, 2: 7293, 10: 49946, 8: 37363}
+Elapsed time for Virginia: 0.47
+
+Population for Oklahoma single subgraph: {4: 747855, 3: 766384, 1: 906728, 0: 769169, 2: 769217}
+Elapsed time for Oklahoma: 34.15
+
+Population for Rhode Island single subgraph: {1: 660741, 0: 436638}
+Elapsed time for Rhode Island: 0.29
+
+Population for Washington single subgraph: {7: 506544, 5: 539339, 4: 499640, 6: 2269675, 0: 827957, 1: 560350, 2: 538082, 8: 527105, 9: 921130, 3: 515459}
+Elapsed time for Washington: 25.58
+
+Population for Mississippi single subgraph: {2: 740351, 1: 742319, 3: 739798, 0: 738811}
+Elapsed time for Mississippi: 25.52
+
+Population for New Mexico single subgraph: {2: 699621, 0: 699211, 1: 718690}
+Elapsed time for New Mexico: 1.11
+
+Population for Georgia single subgraph: [1174739, 1269578, 1398037, 1332062, 1435970, 1198195, 394048, 448611, 997550, 251100, 310912, 396041, 13702, 91363]
+Elapsed time for Georgia: 25698.17
+
+Population for Illinois single subgraph: [502504, 564588, 696355, 530836, 515631, 556662, 17932, 85654, 418042, 140583, 357327, 480014, 507098, 932877, 5275541, 516522, 714342]
+Elapsed time for Illinois: 9242.46
+
+Population for Indiana single subgraph: [725268, 732518, 697903, 732330, 703739, 721632, 977203, 784332, 710603]
+Elapsed time for Indiana: 478.84

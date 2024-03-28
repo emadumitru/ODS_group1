@@ -267,10 +267,14 @@ def run_algorithm(data_graph, data_map, name, target_part, county, path, type_di
     if partitions[1] is not None:
         district_population_b = calculate_district_populations(G, partitions[0])
         district_population_m = calculate_district_populations(G, partitions[1])
+        print(f'Population for {name} biggest subgraph: {district_population_b}')
+        print(f'Population for {name} multiple subgraphs: {district_population_m}')
         plot_partitioned_graph(partitions[2], partitions[0], name + ' biggest subgraph', path, county + '_biggest_subgraph.png')
         plot_districts_from_tracts(partitions[2], partitions[0], data_map, name + ' biggest subgraph', path, county + '_biggest_subgraph_map.png', district_population_b)
         plot_partitioned_graph(G, partitions[1], name + ' multipe subgraphs', path, county + '_multipe_subgraphs.png')
         plot_districts_from_tracts(G, partitions[1], data_map, name + ' multipe subgraphs', path, county + '_multipe_subgraphs_map.png', district_population_m)
     else:
+        district_population_s = calculate_district_populations(G, partitions[0])
+        print(f'Population for {name} single subgraph: {district_population_s}')
         plot_partitioned_graph(G, partitions[0], name, path, county + '_single_subgraph.png')
-        plot_districts_from_tracts(G, partitions[0], data_map, name, path, county + '_single_subgraph_map.png', calculate_district_populations(G, partitions[0]))
+        plot_districts_from_tracts(G, partitions[0], data_map, name, path, county + '_single_subgraph_map.png', district_population_s)
