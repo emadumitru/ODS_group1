@@ -48,32 +48,6 @@ def calculate_district_populations(G, partitioning):
     
     return district_populations
 
-def calculate_rmse_and_top_district(district_populations, target_population):
-    """
-    Calculates the mean RMSE between the district populations and a target population,
-    and identifies the district with the highest population.
-
-    Parameters:
-    - district_populations: A dictionary with district IDs as keys and populations as values.
-    - target_population: The target population for each district.
-
-    Returns:
-    - mean_rmse: The mean RMSE between the district populations and the target population.
-    - top_district: The ID of the district with the highest population.
-    """
-    # Calculate squared differences
-    squared_diffs = [(pop - target_population) ** 2 for pop in district_populations.values()]
-    
-    # Calculate mean RMSE
-    mean_rmse = np.sqrt(np.mean(squared_diffs))
-    mean_mse = np.mean(squared_diffs)
-
-    
-    # Identify the district with the highest population
-    top_district = max(district_populations, key=district_populations.get)
-    
-    return mean_mse, top_district
-
 def check_subgraphs_connectivity(subgraphs):
     """
     Checks if all nodes in each provided subgraph are connected.
@@ -88,43 +62,6 @@ def check_subgraphs_connectivity(subgraphs):
         if not nx.is_connected(subgraph):
             return False
     return True
-
-def calculate_total_distance(G, nodes):
-    """
-    Calculates the total distance within a subgraph of G defined by `nodes`,
-    as the sum of all shortest path lengths between pairs of nodes.
-    """
-    subgraph = G.subgraph(nodes)
-    total_distance = sum(sum(list(nx.single_source_shortest_path_length(subgraph, node).values())) for node in subgraph.nodes())
-    return total_distance / 2
-
-def calculate_distance_impact(G, partitioning, node, current_district, new_district):
-    """
-    Calculates the distance impact of moving a node from its current district to a new district.
-    The impact is defined as the change in the total distance within the affected districts.
-    
-    Parameters:
-    - G: A NetworkX graph.
-    - partitioning: Current partitioning as a dictionary {node: district}.
-    - node: The node to be moved.
-    - current_district: The current district of the node.
-    - new_district: The district to move the node to.
-    
-    Returns:
-    - The distance impact of the move.
-    """
-    # Get the nodes for each district before the move
-    current_district_nodes = [n for n, d in partitioning.items() if d == current_district and n != node]
-    new_district_nodes = [n for n, d in partitioning.items() if d == new_district] + [node]
-
-    # Calculate total distance before the move
-    before_move_distance = calculate_total_distance(G, current_district_nodes + [node]) + calculate_total_distance(G, new_district_nodes[:-1])
-
-    # Calculate total distance after the move
-    after_move_distance = calculate_total_distance(G, current_district_nodes) + calculate_total_distance(G, new_district_nodes)
-
-    # The impact is the difference in total distance
-    return after_move_distance - before_move_distance
 
 def heuristic_node_selection(G, partitioning, nonvalid_partitions, previous_states):
     """
