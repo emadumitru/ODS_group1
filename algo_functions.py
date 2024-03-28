@@ -204,7 +204,7 @@ def graph_partitioning(G, num_partitions, seed=70):
     nonvalid_partitions = []  # Start with an empty list; it will be filled with attempted non-valid partitionings
     previous_states = []
 
-    while True:
+    for _ in range(1000):  # Limit the number of iterations to avoid infinite loops
         best_move, nonvalid_partitions, previous_states = heuristic_node_selection(G, partitioning, nonvalid_partitions, previous_states)
         
         if best_move[0] is None:
